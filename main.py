@@ -2,7 +2,7 @@ import math
 import pygame
 import random
 
-from vecmath import *
+from vecmath import followline, subtract, raycollison, pointbetweenfaces
 from CreateFaces import CreateFaces
 """
 [ or ] to change Fov
@@ -23,14 +23,14 @@ screen_width, screen_height = (600,600)
 cubesize = 3
 #changes the width in pieces
 
-sensitivity = 100.0
+sensitivity = 40.0
 #higher = slower
 #changes how much the cam rotates with the mouse
 
 turn_rate = 9
 #changes how many degrees per frame they are turned
 
-drag = 1.0
+drag = 0.9
 # 0<=drag<1. anything outside this ange will cause sillyness
 
 gap = 0.00
@@ -153,23 +153,24 @@ while running:
       # face[1]=(max(min(255,510*color/len(Faces)-250),0),max(min(255,510*color/len(Faces)-250),0),max(min(255,510*color/len(Faces)-250),0))
 
   #randomization logic
-  if pygame.key.get_pressed()[pygame.K_r] and not r_pressed:
-    r_pressed = True
-    for i in range (5):
-      for face in Faces:
-        if random.random()<.1 and face[3] and face[2]==-1:
-          point1 = followline(face[0][0],face[0][1],1.8)
-          point2 = followline(face[0][1],face[0][0],1.8)
-          for face in Faces:
-            if face[2] == 0 and pointbetweenfaces(point1,point2,face[0][4]):
-              face[2] = 1
-          rotation_direction = subtract(point1,point2)
-          for face in Faces:
-            if face[2] == 1:
-              face[0] = RotateShape(face[0],rotation_direction,90)
-              face[2] = 0
-  elif r_pressed and not pygame.key.get_pressed()[pygame.K_r]:
-    r_pressed = False
+  if pygame.key.get_pressed()[pygame.K_r]:
+    r_pressed+=1
+    if r_pressed == 30:
+      for i in range (5):
+        for face in Faces:
+          if random.random()<.1 and face[3] and face[2]==-1:
+            point1 = followline(face[0][0],face[0][1],1.8)
+            point2 = followline(face[0][1],face[0][0],1.8)
+            for face in Faces:
+              if face[2] == 0 and pointbetweenfaces(point1,point2,face[0][4]):
+                face[2] = 1
+            rotation_direction = subtract(point1,point2)
+            for face in Faces:
+              if face[2] == 1:
+                face[0] = RotateShape(face[0],rotation_direction,90)
+                face[2] = 0
+  else:
+    r_pressed = 0
 
   #turn face logic
   if pygame.mouse.get_pressed()[0] and not degrees_to_turn and not aready_turned:
@@ -242,8 +243,8 @@ while running:
     F_pressed = False
 
   #fov control
-  if pygame.key.get_pressed()[pygame.K_LEFTBRACKET]: Fov *= 0.995
-  elif pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]: Fov *= 1.005
+  if pygame.key.get_pressed()[pygame.K_LEFTBRACKET]: Fov += 0.0001
+  elif pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]: Fov -= .00001
 
   #allows key rotation
   if pygame.key.get_pressed()[pygame.K_q]:x_rotation+=20
@@ -254,8 +255,8 @@ while running:
   if pygame.key.get_pressed()[pygame.K_a]:z_rotation-=20
 
   #allows adjusting drag
-  if pygame.key.get_pressed()[pygame.K_o]:drag *= 1.1
-  if pygame.key.get_pressed()[pygame.K_p]:drag *= 0.9
+  if pygame.key.get_pressed()[pygame.K_o]:drag *= 1.001
+  if pygame.key.get_pressed()[pygame.K_p]:drag *= 0.999
 
   #allows mouse rotation
   tz, ty = pygame.mouse.get_rel()
